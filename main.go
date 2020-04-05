@@ -11,10 +11,15 @@ import (
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" //const provides charset for random string func
 
-type ResponseJson struct {
-	//provides a struct to response with pseudo-random values
+type DataJson struct {
+	//provides a struct for data in the weather object
 	Id      int    `json:"id"` //mentioned as best practice to cast struct into json
 	Feeling string `json:"feeling"`
+}
+
+type ResponseJson struct {
+	//provides a struct for weather object in response
+	Weather DataJson `json:"weather"`
 }
 
 var seededRand *rand.Rand = rand.New(
@@ -32,15 +37,14 @@ func String(charset string) string {
 	}
 	return string(b)
 }
-
+func Server(w http.ResponseWriter, request *http.Request) {
+	response := ResponseJson{Weather: DataJson{Id: randomInt(), Feeling: String(charset)}} //generating response
+	json.NewEncoder(w).Encode(response)                                                    //write encoded response to response writer
+}
 func main() {
 	//not sure 'bout doc string here, but
 	//it's a basic web server implementation, which is listen on 8080 and should response a JSON
 	//provided by Response func
-	http.HandleFunc("/weather/", func(w http.ResponseWriter, request *http.Request) {
-		response := ResponseJson{Id: randomInt(), Feeling: String(charset)} //generating response
-		json.NewEncoder(w).Encode(response)                                 //write encoded response to response writer
-
-	})
+	http.HandleFunc("/weather/", Server)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
